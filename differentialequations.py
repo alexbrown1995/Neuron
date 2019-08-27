@@ -108,13 +108,12 @@ T1=array(t1)/1000#[0:313]
 T2=array(t2)/1000#[0:313]
 
 print(T1)
-"""
+
 plot(T1,V1,'b')
 plot(T1,V3,'r')
-plot(T1,V4,'g')
-plot(T1,Vc2,'c')
+plot(T1,Vc2,'g')
 show()
-"""
+
 
 
 
@@ -122,7 +121,7 @@ def differential(t,vdata,tdata):
     h=0.19600000000002638e-3
     tmin=(1000*t%(182.776))/1000
     j=int(tmin/h)
-    print(j)
+
 
     #finite difference
     if j==962:
@@ -150,16 +149,21 @@ dVc2=[]
 for t in T1:
     dVc2.append(differential(t,Vc2,T1))
 
+dV3=[]
+for t in T1:
+    dV3.append(differential(t,V3,T1))
 
+"""
 plot(T1,dVc2)
 
 plot(T1,Vc2)
 show()
+"""
 
-fig = figure()
-ax = axes(projection="3d")
+#fig = figure()
+#ax = axes(projection="3d")
 
-
+"""
 ax.scatter3D(dVc2,V1,V3)
 show()
 plot(Vc2,V1)
@@ -168,7 +172,9 @@ show()
 plot(Vc2,V3)
 plot(dVc2,V3)
 show()
+"""
 data=[]
+
 for i in range(0,len(V1)):
     data.append([V1[i],Vc2[i],V3[i]]) #,dVc2[i]])
 
@@ -212,12 +218,7 @@ def cubic(a):
     return np.sum(np.dot(A, C1))
 
 
-A2 = np.concatenate((G**4,G**3,G**2, np.array([np.prod(G[:, k], axis=1) for k in combinations(range(dim), dim-1)]).transpose(), G, np.ones((G.shape[0], 1))), axis=1)
-C2, _, _, _ = scipy.linalg.lstsq(A2, f)
-def quartic(a):
-    dim = a.shape[0]
-    A = np.concatenate((a**4,a**3,a**2, np.array([np.prod(a[k,]) for k in combinations(range(dim), dim - 1)]), a, [1]))
-    return np.sum(np.dot(A, C2))
+
 
 
 A3 = np.concatenate((G**5,G**4,G**3,G**2, np.array([np.prod(G[:, k], axis=1) for k in combinations(range(dim), dim-1)]).transpose(), G, np.ones((G.shape[0], 1))), axis=1)
@@ -231,6 +232,27 @@ def fifth(a):
 for i in range(G.shape[0]):
     print(cubic(G[i,:]))
 
+def differentialbetter(a,G,f):
+    dim = a.shape[0]
+    A2 = np.concatenate((G**4,G**3,G**2, np.array([np.prod(G[:, k], axis=1) for k in combinations(range(dim), dim-1)]).transpose(), G, np.ones((G.shape[0], 1))), axis=1)
+    C2, _, _, _ = scipy.linalg.lstsq(A2, f)
+
+    A = np.concatenate((a**4,a**3,a**2, np.array([np.prod(a[k,]) for k in combinations(range(dim), dim - 1)]), a, [1]))
+    return np.sum(np.dot(A, C2))
+
+"""
+def differentialbetter(a,G,f):
+    dim = a.shape[0]
+    A2 = np.concatenate((G**10,G**9,G**8,G**7,G**6,G**5,G**4,G**3,G**2, np.array([np.prod(G[:, k], axis=1) for k in combinations(range(dim), dim-1)]).transpose(), G, np.ones((G.shape[0], 1))), axis=1)
+    C2, _, _, _ = scipy.linalg.lstsq(A2, f)
+
+    A = np.concatenate((a**10,a**9,a**8,a**7,a**6,a**5,a**4,a**3,a**2, np.array([np.prod(a[k,]) for k in combinations(range(dim), dim - 1)]), a, [1]))
+    return np.sum(np.dot(A, C2))
+"""
+def quartic(a):
+    dim = a.shape[0]
+    A = np.concatenate((a**4,a**3,a**2, np.array([np.prod(a[k,]) for k in combinations(range(dim), dim - 1)]), a, [1]))
+    return np.sum(np.dot(A, C2))
 
 """
 for i in range(G.shape[0]):
@@ -240,51 +262,69 @@ for i in range(G.shape[0]):
 for i in range(G.shape[0]):
     print(quadratic(G[i,:]), f[i])
 """
-
-print(C)
+dataVc2=data
+dataV3=data
+#print(C)
 sol=[]
 for val in data:
     sol.append(C[0]*val[0]**2+C[1]*val[1]**2+C[2]*val[2]**2+C[3]*val[0]*val[1]+C[4]*val[0]*val[2]+C[5]*val[1]*val[2]+C[6]*val[0]+C[7]*val[1]+C[8]*val[2]+C[9])
 
-sol2=[]
+
+sol=[]
 for i in range(G.shape[0]):
-    sol2.append(cubic(G[i,:]))
-
-sol3=[]
-for i in range(G.shape[0]):
-    sol3.append(quartic(G[i,:]))
-
-sol4=[]
-for i in range(G.shape[0]):
-    sol4.append(fifth(G[i,:]))
+    sol.append(differentialbetter(G[i,:],dataVc2,dVc2))
 
 
+"""
 fig = figure()
 ax = fig.gca(projection='3d')
 ax.scatter(sol,  data[:, 0], data[:,1], c='b', s=50)
-ax.scatter(sol2,  data[:,0], data[:,1], c='g', s=50)
 ax.scatter(dVc2, data[:,0], data[:,1], c='r', s=50)
-ax.scatter(sol3,  data[:,0], data[:,1], c='c', s=50)
-ax.scatter(sol4,  data[:,0], data[:,1], c='orange', s=50)
 show()
 
 fig = figure()
 ax = fig.gca(projection='3d')
 ax.scatter(sol,  data[:, 1], data[:,2], c='b', s=50)
-ax.scatter(sol2,  data[:,1], data[:,2], c='g', s=50)
 ax.scatter(dVc2, data[:,1], data[:,2], c='r', s=50)
-ax.scatter(sol3,  data[:,1], data[:,2], c='c', s=50)
-ax.scatter(sol4,  data[:,1], data[:,2], c='orange', s=50)
 show()
 
 fig = figure()
 ax = fig.gca(projection='3d')
 ax.scatter(sol,  data[:, 0], data[:,2], c='b', s=50)
-ax.scatter(sol2,  data[:,0], data[:,2], c='g', s=50)
 ax.scatter(dVc2, data[:,0], data[:,2], c='r', s=50)
-ax.scatter(sol3,  data[:,0], data[:,2], c='c', s=50)
-ax.scatter(sol4,  data[:,0], data[:,2], c='orange', s=50)
+xlabel('Vc2')
+ylabel('V1')
+ax.set_zlabel('V3')
 show()
+
+
+sol2=[]
+for i in range(G.shape[0]):
+    sol2.append(differentialbetter(G[i,:],dataV3,dV3))
+
+
+
+fig = figure()
+ax = fig.gca(projection='3d')
+ax.scatter(sol2,  data[:, 0], data[:,1], c='b', s=50)
+ax.scatter(dV3, data[:,0], data[:,1], c='r', s=50)
+show()
+
+fig = figure()
+ax = fig.gca(projection='3d')
+ax.scatter(sol2,  data[:, 1], data[:,2], c='b', s=50)
+ax.scatter(dV3, data[:,1], data[:,2], c='r', s=50)
+show()
+
+fig = figure()
+ax = fig.gca(projection='3d')
+ax.scatter(sol2,  data[:, 0], data[:,2], c='b', s=50)
+ax.scatter(dV3, data[:,0], data[:,2], c='r', s=50)
+xlabel('dV3')
+ylabel('V1')
+ax.set_zlabel('V3')
+show()
+"""
 """
  # regular grid covering the domain of the data
 X,Y = np.meshgrid(np.arange(5, 8, 0.5),np.arange(5, 8, 0.5) )#np.arange(0.4, 0.8, 0.05))
@@ -314,25 +354,47 @@ show()
 """
 #print(T1)
 
-"""
+
 def neuron(V,t,L):
     return[differential(t,V1,T1),differential(t,Vc2,T1),differential(t,V3,T1), (1/L)*(V[0] - Vec(V[3]) )]
 
+def neuron2(V,t,L):
+    return[differential(t,V1,T1),differentialbetter(array([V[0],V[1],V[2]]),dataVc2,dVc2),differentialbetter(array([V[0],V[1],V[2]]),dataV3,dV3), (1/L)*(V[0] - Vec(V[3]) )]
+
+
+
+
+dataVc2=data
+dataV3=data
+
+
 def neuronode(V,t,L,E,R1,R3,C2):
-    return [ 1/C1*(((E-V[0])/R1)-V[3]-C2*differential(t,Vc2,T1)-((V[0]-V[2])/R3)),differential(t,Vc2,T1),differential(t,V3,T1),(1/L)*(V[0] - Vec(V[3]))]
+    return [ 1/C1*(((E-V[0])/R1)-V[3]-C2*differentialbetter(array([V[0],V[1],V[2]]),dataVc2,dVc2)-((V[0]-V[2])/R3)+I),differentialbetter(array([V[0],V[1],V[2]]),dataVc2,dVc2),differentialbetter(array([V[0],V[1],V[2]]),dataV3,dV3) ,(1/L)*(V[0] - Vec(V[3]))]
+
+
 
 
 L=1e-7
 V0=[V1[0],Vc2[0],V3[0],0]
 T=300e-3
-t=linspace(0,T,5000)
-V = odeint(neuron, V0, t, args=(L,))
+t=linspace(0,T,1000)
+
+L=1e-7
+C1=1e-6
+C2=10e-6
+C3=2e-6
+R1=3.3e3
+R3=200e3
+R4=10e3
+I=0.5e-3
+E=10
+V = odeint(neuronode, V0, t, args=(L,E,R1,R3,C2,))
 j = 0
 v1 = []
 vc2=[]
 v3 = []
 In=[]
-while (j <= 4999):
+while (j <= 999):
     v1.append(V[j][0])
     vc2.append(V[j][1])
     v3.append(V[j][2])
@@ -345,9 +407,17 @@ plot(t,v3,'r')
 plot(t,In,'c')
 show()
 
-val=[]
-
 """
+plot(T1,sol,'b')
+plot(T1,dVc2,'r')
+show()
+
+plot(T1,sol2,'b')
+plot(T1,dV3,'r')
+show()
+val=[]
+"""
+
 
 """
 for i in range(0,1000):
