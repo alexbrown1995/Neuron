@@ -1,13 +1,3 @@
-from numpy import *
-# Import the ODE integrator
-from scipy.integrate import odeint
-# Get access to the root-finder
-from scipy.optimize import fsolve
-# Plotting
-from matplotlib.pyplot import *
-import csv
-from mpl_toolkits import mplot3d
-
 def readin(name):
     with open(name, 'r') as csvfile:
         voltages = csv.reader(csvfile, delimiter=',')
@@ -26,19 +16,4 @@ def readin(name):
 
     return x,y
 
-I,vbe=readin('trans_2n2222data.csv')
-
-plot(vbe,I)
-
-x=polyfit(vbe, log(I), 1, w=sqrt(I))
-
-print(x)
-
-v=linspace(0.05,0.65,100)
-
-y=[]
-for val in v:
-    y.append(e**(x[1])*e**(x[0]*val))
-
-plot(v,y)
-show()
+vbe,I=readin('trans_2n2222data.csv')
